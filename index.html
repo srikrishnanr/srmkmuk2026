@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Radha Kalyanam Mahotsav UK 2026</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css">
+
+    <style>
+        html, body {
+            overflow-x: hidden;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) 4rem env(safe-area-inset-left);
+        }
+        .ui-widget {
+            font-family: inherit !important;
+            font-size: 1rem !important;
+        }
+        input.form-control, button.btn {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Landing Cards */
+        .day-card {
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+            touch-action: manipulation;
+        }
+        .day-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            background-color: #f8f9fa;
+        }
+        .day-card:active {
+            transform: scale(0.98);
+        }
+
+        /* Tabs */
+        #pre-registered-content { background-color: #FAF0E6; }
+        #new-registration-content { background-color: #F0F8FF; }
+        #myTab .nav-link {
+            font-size: 1.25rem;
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+            min-height: 52px;
+            border-radius: 0;
+            color: #495057;
+            background-color: #e9ecef;
+            border-bottom: 3px solid #dee2e6;
+        }
+        #myTab .nav-link.active {
+            color: #ffffff;
+            background-color: #0d6efd;
+            border-bottom: 3px solid #0a58ca;
+        }
+        .tab-content {
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 .25rem .25rem;
+        }
+
+        /* Autocomplete */
+        .ui-autocomplete {
+            max-height: 55vh;
+            max-width: calc(100vw - 2rem);
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 1050;
+            border-radius: 0.375rem;
+            box-sizing: border-box;
+        }
+        .ui-autocomplete .ui-menu-item-wrapper {
+            padding: 0 !important;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Touch Steppers */
+        .btn-plus, .btn-minus {
+            min-width: 56px;
+            min-height: 56px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .stepper-group {
+            flex-wrap: nowrap !important;
+        }
+        .stepper-group input[type="number"] {
+            min-width: 0;
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+        .stepper-group input[type="number"]::-webkit-inner-spin-button,
+        .stepper-group input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Camera Viewfinder */
+        #qr-video {
+            width: 100%;
+            max-height: 320px;
+            object-fit: cover;
+            border-radius: 0.375rem;
+            background: #000;
+        }
+
+        @media (max-width: 575.98px) {
+            #title { font-size: 1.25rem; }
+            #back-to-days-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 1rem;
+                min-height: 44px;
+            }
+            #myTab .nav-link {
+                font-size: 1rem;
+                padding: 0.85rem 0.5rem;
+            }
+            .btn-plus, .btn-minus {
+                min-width: 52px;
+                min-height: 52px;
+            }
+            #check-in-btn, #cancel-checkin-btn, #complete-reg-btn, #cancel-new-reg-btn {
+                font-size: 1.15rem !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- VIEW 1: DAY SELECTION LANDING -->
+    <div id="landing-view" class="container py-4 my-auto">
+        <div class="text-center mb-4 px-2">
+            <h1 class="h3 fw-bold text-dark">Radha Kalyanam Mahotsav UK 2026</h1>
+        </div>
+        <div class="row g-3 g-md-4 justify-content-center">
+            <div class="col-12 col-sm-10 col-md-4">
+                <div class="card day-card border-primary border-2 shadow-lg p-3 p-md-4 h-100" data-day="1">
+                    <div class="card-body text-center py-3 py-md-4">
+                        <h2 class="card-title display-6 fw-bold text-primary mb-2 mb-md-3">Day 1</h2>
+                        <p class="card-text fs-5 fw-bold text-dark mb-0">Friday 27 Nov 2026</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-10 col-md-4">
+                <div class="card day-card border-success border-2 shadow-lg p-3 p-md-4 h-100" data-day="2">
+                    <div class="card-body text-center py-3 py-md-4">
+                        <h2 class="card-title display-6 fw-bold text-success mb-2 mb-md-3">Day 2</h2>
+                        <p class="card-text fs-5 fw-bold text-dark mb-0">Saturday 28 Nov 2026</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-10 col-md-4">
+                <div class="card day-card border-info border-2 shadow-lg p-3 p-md-4 h-100" data-day="3">
+                    <div class="card-body text-center py-3 py-md-4">
+                        <h2 class="card-title display-6 fw-bold text-info mb-2 mb-md-3">Day 3</h2>
+                        <p class="card-text fs-5 fw-bold text-dark mb-0">Sunday 29 Nov 2026</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 2: CHECK-IN & WALK-IN -->
+    <div id="checkin-view" class="container py-2 py-md-3 d-none">
+        <div class="d-flex align-items-center justify-content-between mb-3 gap-2 gap-md-3">
+            <h1 class="h2 fw-bold text-dark mb-0" id="title">Radha Madhava Kalyanam 2026</h1>
+            <button type="button" id="back-to-days-btn" class="btn btn-outline-secondary btn-lg flex-shrink-0">&larr; Back</button>
+        </div>
+
+        <div class="card shadow-lg">
+            <div class="card-header p-0">
+                <ul class="nav nav-pills nav-fill" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="pre-registered-tab" data-bs-toggle="tab" data-bs-target="#pre-registered-content" type="button" role="tab">Already Registered</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="new-registration-tab" data-bs-toggle="tab" data-bs-target="#new-registration-content" type="button" role="tab">New Registration</button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active p-3 p-md-4" id="pre-registered-content" role="tabpanel">
+                    <div class="mb-3 mb-md-4">
+                        <label for="guest-search" class="form-label fw-medium">Search (by Name / Email / Phone / Postcode) or Scan QR</label>
+                        <div class="d-flex flex-column flex-sm-row gap-2">
+                            <div class="input-group input-group-lg flex-nowrap flex-grow-1">
+                                <input type="text" id="guest-search" class="form-control" placeholder="Start typing or scan QR..." autocomplete="off">
+                                <button class="btn btn-outline-secondary flex-shrink-0" type="button" id="clear-search-btn" aria-label="Clear search" style="min-width: 56px;">&times;</button>
+                            </div>
+                            <button type="button" id="scan-qr-btn" class="btn btn-primary btn-lg fw-bold flex-shrink-0 px-4" style="min-height: 52px;">
+                                Scan QR
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="selected-user-details" class="d-none p-3 p-md-4 mt-3 mt-md-4 border border-info rounded-3 bg-light shadow-sm">
+                        <div class="row g-2 g-md-3" id="user-info"></div>
+                        <div class="mt-4 pt-3 border-top d-flex flex-column-reverse flex-sm-row gap-2 gap-sm-3">
+                            <button type="button" id="cancel-checkin-btn" class="btn btn-outline-secondary btn-lg py-3 fs-4 fw-bold" style="min-width: 120px;">Cancel</button>
+                            <button id="check-in-btn" class="btn btn-success btn-lg flex-grow-1 py-3 fs-4 fw-bold">Add</button>
+                        </div>
+                    </div>
+
+                    <div id="status-alert" class="alert alert-info mt-3 mt-md-4 mb-0" role="alert">
+                        <h4 id="data-status" class="alert-heading fs-6 mb-0">Ready</h4>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade p-3 p-md-4" id="new-registration-content" role="tabpanel">
+                    <form id="new-registration-form" class="vstack gap-3">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label for="new-fname" class="form-label">First Name</label>
+                                <input type="text" id="new-fname" class="form-control form-control-lg" autocomplete="given-name" required>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="new-lname" class="form-label">Last Name</label>
+                                <input type="text" id="new-lname" class="form-control form-control-lg" autocomplete="family-name" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12 col-md-5">
+                                <label for="new-email" class="form-label">Email Address</label>
+                                <input type="email" id="new-email" class="form-control form-control-lg" autocomplete="email" required>
+                            </div>
+                            <div class="col-12 col-sm-7 col-md-4">
+                                <label for="new-phone" class="form-label">Phone Number</label>
+                                <input type="tel" id="new-phone" class="form-control form-control-lg" autocomplete="tel">
+                            </div>
+                            <div class="col-12 col-sm-5 col-md-3">
+                                <label for="new-postcode" class="form-label">Postcode (Optional)</label>
+                                <input type="text" id="new-postcode" class="form-control form-control-lg" placeholder="(Optional)" autocomplete="postal-code">
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label">Number of Adults</label>
+                                <div class="input-group input-group-lg flex-nowrap stepper-group">
+                                    <button class="btn btn-outline-secondary btn-minus" type="button" data-target="#new-numAdults">-</button>
+                                    <input type="number" id="new-numAdults" class="form-control text-center fs-4 fw-bold" min="1" value="1" inputmode="numeric" readonly required>
+                                    <button class="btn btn-outline-secondary btn-plus" type="button" data-target="#new-numAdults">+</button>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label">Number of Children</label>
+                                <div class="input-group input-group-lg flex-nowrap stepper-group">
+                                    <button class="btn btn-outline-secondary btn-minus" type="button" data-target="#new-numChildren">-</button>
+                                    <input type="number" id="new-numChildren" class="form-control text-center fs-4 fw-bold" min="0" value="0" inputmode="numeric" readonly required>
+                                    <button class="btn btn-outline-secondary btn-plus" type="button" data-target="#new-numChildren">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-column-reverse flex-sm-row gap-2 gap-sm-3 mt-3 mt-md-4">
+                            <button type="button" id="cancel-new-reg-btn" class="btn btn-outline-secondary btn-lg py-3 fs-4 fw-bold" style="min-width: 120px;">Cancel</button>
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1 py-3 fs-4 fw-bold" id="complete-reg-btn">Register & Check-in</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Scanner Modal (Live Camera + Handheld Fallback) -->
+    <div class="modal fade" id="qrScannerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Scan Guest QR Code</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <video id="qr-video" class="d-none mb-2" playsinline muted></video>
+                    <div id="qr-scanner-status" class="alert alert-info py-2 mb-3">Starting camera...</div>
+                    <label for="handheld-qr-input" class="form-label fw-medium mb-1">Or scan with handheld QR scanner:</label>
+                    <input type="text" id="handheld-qr-input" class="form-control form-control-lg" placeholder="Focus here & scan QR..." autocomplete="off">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-lg w-100" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center p-4 p-md-5">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                    <h5 class="mt-3">Loading Event Data...</h5>
+                    <p class="text-muted mb-0">Please wait while registration entries are being loaded</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sync-footer" class="fixed-bottom p-2 text-end bg-dark text-white shadow-lg" style="display:none;">
+        <small>Pending Requests: <span id="pending-count" class="fw-bold">0</span></small>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // [ACTION_REQUIRED]: Update with your deployed Apps Script Web App URL
+        const GAS_API_URL = 'INSERT_WEB_APP_URL_HERE';
+
+        let currentDayNumber = 1;
+        window.masterData = [];
+        window.pendingCheckins = [];
+        window.selectedGuest = null;
+
+        let loadingModal;
+        let qrScannerModal;
+        let mediaStream = null;
+        let scanFrameId = null;
+        let syncIntervalId = null;
+
+        const dayMap = {
+            1: 'Friday: 27th Nov 2026',
+            2: 'Saturday: 28th Nov 2026',
+            3: 'Sunday: 29th Nov 2026'
+        };
+
+        async function selectDay(day) {
+            currentDayNumber = Number(day) || 1;
+            $('#title').text(dayMap[currentDayNumber] || `Day ${currentDayNumber}`);
+            $('#landing-view').addClass('d-none');
+            $('#checkin-view').removeClass('d-none');
+            $('#selected-user-details').addClass('d-none').hide();
+            $('#guest-search').val('');
+
+            loadingModal.show();
+            try {
+                const response = await fetch(GAS_API_URL + '?action=getMasterData&day=' + currentDayNumber);
+                const result = await response.json();
+                if (result.status !== 'success') {
+                    throw new Error(result.message || 'Failed to load data.');
+                }
+                window.masterData = result.data || [];
+                initializeAutocomplete();
+                $('#status-alert').removeClass('d-none alert-success alert-danger').addClass('alert-info');
+                $('#data-status').text(`Successfully loaded ${window.masterData.length} records.`);
+                setTimeout(() => $('#guest-search').focus(), 200);
+            } catch (err) {
+                $('#status-alert').removeClass('d-none alert-info alert-success').addClass('alert-danger');
+                $('#data-status').text('Error loading data: ' + err.message);
+            } finally {
+                loadingModal.hide();
+                $('.modal-backdrop').remove();
+            }
+        }
+
+        function parseQrPayload(rawText) {
+            const text = String(rawText || '').trim();
+            let email = '';
+            let day = null;
+            let id = '';
+
+            if (text.startsWith('{')) {
+                try {
+                    const obj = JSON.parse(text);
+                    email = String(obj.email || obj.Email || '').trim();
+                    id = String(obj.id || obj.ID || '').trim();
+                    const rawDay = obj.day ?? obj.dayNumber ?? obj.Day;
+                    if (rawDay !== undefined && rawDay !== null && rawDay !== '') {
+                        const parsedDay = parseInt(rawDay, 10);
+                        if (!isNaN(parsedDay)) day = parsedDay;
+                    }
+                    if (email || id) return { email: email.toLowerCase(), day, id };
+                } catch (e) {}
+            }
+
+            if (text.includes('email=') || text.includes('day=')) {
+                try {
+                    const params = new URLSearchParams(text.includes('?') ? text.split('?')[1] : text);
+                    if (params.get('email')) email = params.get('email').trim();
+                    if (params.get('id')) id = params.get('id').trim();
+                    if (params.get('day')) {
+                        const parsedDay = parseInt(params.get('day'), 10);
+                        if (!isNaN(parsedDay)) day = parsedDay;
+                    }
+                } catch (e) {}
+            }
+
+            if (!email) {
+                const match = text.match(/email\s*[:=]\s*([^\s,;]+@[^\s,;]+)/i) ||
+                              text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+                if (match) email = (match[1] || match[0]).trim();
+            }
+
+            if (day === null) {
+                const dayMatch = text.match(/\bday[\s_:=#-]*([123])\b/i);
+                if (dayMatch) day = parseInt(dayMatch[1], 10);
+            }
+
+            return { email: email.toLowerCase(), day, id };
+        }
+
+        function handleQrScanResult(rawText) {
+            const trimmed = String(rawText || '').trim();
+            if (!trimmed) return;
+
+            stopQrCamera();
+            qrScannerModal.hide();
+
+            const parsed = parseQrPayload(trimmed);
+            if (parsed.day !== null && parsed.day !== Number(currentDayNumber)) {
+                window.selectedGuest = null;
+                $('#selected-user-details').addClass('d-none').hide();
+                $('#status-alert').removeClass('d-none alert-info alert-success').addClass('alert-danger');
+                $('#data-status').html(`&#9888; Wrong Day: This QR code is for <strong>Day ${parsed.day}</strong>, but you are on <strong>Day ${currentDayNumber}</strong>.`);
+                setTimeout(() => $('#guest-search').focus(), 200);
+                return;
+            }
+
+            let matchedGuest = parsed.id
+                ? window.masterData.find(g => String(g.id).trim() === parsed.id)
+                : null;
+            if (!matchedGuest && parsed.email) {
+                matchedGuest = window.masterData.find(g => String(g.email || '').trim().toLowerCase() === parsed.email);
+            }
+
+            if (!matchedGuest) {
+                window.selectedGuest = null;
+                $('#selected-user-details').addClass('d-none').hide();
+                $('#status-alert').removeClass('d-none alert-info alert-success').addClass('alert-danger');
+                $('#data-status').text('Guest not found for QR code. Please search manually or use New Registration.');
+                setTimeout(() => $('#guest-search').focus(), 200);
+                return;
+            }
+
+            displaySelectedUser(matchedGuest);
+        }
+
+        async function startQrCamera() {
+            const videoEl = document.getElementById('qr-video');
+            const $status = $('#qr-scanner-status');
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                $status.removeClass('alert-info').addClass('alert-warning')
+                    .text('Camera API unavailable in this browser. Use the handheld scanner input below.');
+                return;
+            }
+
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                videoEl.srcObject = mediaStream;
+                await videoEl.play();
+                $(videoEl).removeClass('d-none');
+
+                if (!('BarcodeDetector' in window)) {
+                    $status.removeClass('alert-info').addClass('alert-warning')
+                        .text('Camera active, but native QR decoding is not supported on this browser. Use the handheld scanner input below.');
+                    return;
+                }
+
+                const detector = new BarcodeDetector({ formats: ['qr_code'] });
+                $status.removeClass('alert-warning alert-danger').addClass('alert-info')
+                    .text('Point the camera at the guest QR code...');
+
+                const scanLoop = async () => {
+                    if (!mediaStream) return;
+                    try {
+                        const codes = await detector.detect(videoEl);
+                        if (codes.length > 0 && codes[0].rawValue) {
+                            handleQrScanResult(codes[0].rawValue);
+                            return;
+                        }
+                    } catch (e) {}
+                    scanFrameId = requestAnimationFrame(scanLoop);
+                };
+                scanFrameId = requestAnimationFrame(scanLoop);
+            } catch (err) {
+                $status.removeClass('alert-info').addClass('alert-warning')
+                    .text('Camera permission denied or unavailable. Use the handheld scanner input below.');
+            }
+        }
+
+        function stopQrCamera() {
+            if (scanFrameId) {
+                cancelAnimationFrame(scanFrameId);
+                scanFrameId = null;
+            }
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(t => t.stop());
+                mediaStream = null;
+            }
+            const videoEl = document.getElementById('qr-video');
+            videoEl.srcObject = null;
+            $(videoEl).addClass('d-none');
+        }
+
+        function initializeAutocomplete() {
+            if ($('#guest-search').autocomplete('instance')) {
+                $('#guest-search').autocomplete('destroy');
+            }
+            if (window.masterData.length === 0) return;
+
+            $('#guest-search').autocomplete({
+                minLength: 2,
+                source: function(request, response) {
+                    const term = request.term.toLowerCase().replace(/\s/g, '');
+                    const results = $.grep(window.masterData, function(guest) {
+                        return (
+                            String(`${guest.fname}${guest.lname}`).toLowerCase().includes(term) ||
+                            String(guest.email).toLowerCase().includes(term) ||
+                            String(guest.phone).toLowerCase().includes(term) ||
+                            String(guest.postcode).toLowerCase().replace(/\s/g, '').includes(term)
+                        );
+                    });
+                    response($.map(results, guest => ({
+                        label: `${guest.fname} ${guest.lname} (${guest.email})`,
+                        value: `${guest.fname} ${guest.lname}`,
+                        data: guest
+                    })));
+                },
+                select: function(event, ui) {
+                    displaySelectedUser(ui.item.data);
+                    $('#guest-search').val('');
+                    return false;
+                },
+                focus: () => false
+            }).autocomplete('instance')._renderItem = function(ul, item) {
+                const badgeHtml = item.data.isCheckedIn === 'Y'
+                    ? '<span class="badge bg-success ms-2 flex-shrink-0">Checked In</span>'
+                    : '';
+                return $('<li>')
+                    .append(`<div class="p-3 d-flex justify-content-between align-items-center gap-2"><div class="text-break"><strong>${item.label}</strong><br><small class="text-muted">${item.data.phone} | ${item.data.postcode}</small></div>${badgeHtml}</div>`)
+                    .appendTo(ul);
+            };
+        }
+
+        function displaySelectedUser(guest) {
+            window.selectedGuest = guest;
+            $('#status-alert').addClass('d-none').removeClass('alert-success alert-danger').addClass('alert-info');
+            $('#data-status').html('');
+            $('#check-in-btn').text(guest.isCheckedIn === 'Y' ? 'Update' : 'Add');
+
+            if (!guest.numAdults || guest.numAdults <= 0) guest.numAdults = 1;
+
+            $('#user-info').html(`
+                <div class="col-12 fw-bold fs-5">${guest.fname} ${guest.lname}</div>
+                <div class="col-12 text-break text-muted">${guest.email.toLowerCase()}</div>
+                <div class="col-6">${guest.phone}</div><div class="col-6 text-end">${guest.postcode.toUpperCase()}</div>
+                <div class="col-12 col-sm-5 col-md-6 fw-medium text-primary align-self-center">Adults:</div>
+                <div class="col-12 col-sm-7 col-md-6">
+                    <div class="input-group input-group-lg flex-nowrap stepper-group">
+                        <button class="btn btn-lg btn-success btn-minus" type="button" data-target="#numAdults">-</button>
+                        <input type="number" id="numAdults" class="form-control text-center fs-4 fw-bold" min="0" value="${guest.numAdults}" data-attribute="numAdults" inputmode="numeric" readonly>
+                        <button class="btn btn-lg btn-success btn-plus" type="button" data-target="#numAdults">+</button>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-5 col-md-6 fw-medium text-primary align-self-center">Children:</div>
+                <div class="col-12 col-sm-7 col-md-6">
+                    <div class="input-group input-group-lg flex-nowrap stepper-group">
+                        <button class="btn btn-lg btn-success btn-minus" type="button" data-target="#numChildren">-</button>
+                        <input type="number" id="numChildren" class="form-control text-center fs-4 fw-bold" min="0" value="${guest.numChildren}" data-attribute="numChildren" inputmode="numeric" readonly>
+                        <button class="btn btn-lg btn-success btn-plus" type="button" data-target="#numChildren">+</button>
+                    </div>
+                </div>
+            `);
+            $('#selected-user-details').removeClass('d-none').hide().slideDown(200);
+            attachPartySizeListeners();
+        }
+
+        function attachPartySizeListeners() {
+            $('#numAdults, #numChildren, #new-numAdults, #new-numChildren').off('change').on('change', function() {
+                const $input = $(this);
+                const minVal = parseInt($input.attr('min'), 10) || 0;
+                let value = parseInt($input.val(), 10) || 0;
+                if (value < minVal) value = minVal;
+                $input.val(value);
+                if ($input.closest('#pre-registered-content').length && window.selectedGuest) {
+                    window.selectedGuest[$input.data('attribute')] = value;
+                }
+            });
+
+            $(document).off('click', '.btn-plus, .btn-minus').on('click', '.btn-plus, .btn-minus', function() {
+                const $btn = $(this);
+                const $target = $($btn.data('target'));
+                let val = parseInt($target.val(), 10) || 0;
+                const minVal = parseInt($target.attr('min'), 10) || 0;
+                if ($btn.hasClass('btn-plus')) val++;
+                else if (val > minVal) val--;
+                $target.val(val).trigger('change');
+            });
+        }
+
+        function checkInGuest() {
+            if (!window.selectedGuest) return;
+            const guest = window.selectedGuest;
+            const payload = {
+                id: guest.id,
+                fname: guest.fname,
+                lname: guest.lname,
+                email: guest.email,
+                phone: guest.phone,
+                postcode: guest.postcode,
+                numAdults: parseInt(guest.numAdults, 10) || 0,
+                numChildren: parseInt(guest.numChildren, 10) || 0,
+                checkInTime: new Date().toISOString()
+            };
+
+            guest.isCheckedIn = 'Y';
+            guest.numAdults = payload.numAdults;
+            guest.numChildren = payload.numChildren;
+
+            window.pendingCheckins.push(payload);
+            updatePendingCount();
+
+            $('#selected-user-details').addClass('d-none').hide();
+            $('#status-alert').removeClass('d-none alert-info alert-danger').addClass('alert-success');
+            $('#data-status').html(`&#10004; Successfully checked-in ${payload.fname} ${payload.lname} (${payload.numAdults}A${payload.numChildren > 0 ? ' + ' + payload.numChildren + 'C' : ''})`);
+            $('#guest-search').focus();
+        }
+
+        function submitNewRegistration(e) {
+            e.preventDefault();
+            const $form = $('#new-registration-form');
+            if (!$form[0].checkValidity()) {
+                $form[0].reportValidity();
+                return;
+            }
+
+            const newGuest = {
+                id: 'newGuest',
+                fname: $('#new-fname').val().trim(),
+                lname: $('#new-lname').val().trim(),
+                email: $('#new-email').val().trim(),
+                phone: $('#new-phone').val().trim(),
+                postcode: $('#new-postcode').val().trim(),
+                numAdults: parseInt($('#new-numAdults').val(), 10) || 1,
+                numChildren: parseInt($('#new-numChildren').val(), 10) || 0,
+                isCheckedIn: 'Y',
+                checkInTime: new Date().toISOString()
+            };
+
+            window.pendingCheckins.push(newGuest);
+            window.masterData.push(newGuest);
+            updatePendingCount();
+            $form[0].reset();
+
+            $('#status-alert').removeClass('d-none alert-info alert-danger').addClass('alert-success');
+            $('#data-status').html(`&#10004; Successfully registered and checked-in: ${newGuest.fname} ${newGuest.lname} (${newGuest.numAdults}A${newGuest.numChildren > 0 ? ' + ' + newGuest.numChildren + 'C' : ''})`);
+            new bootstrap.Tab(document.getElementById('pre-registered-tab')).show();
+            setTimeout(() => $('#guest-search').focus(), 200);
+        }
+
+        async function batchUpdateAttendance() {
+            if (window.pendingCheckins.length === 0) return;
+
+            const batchData = [...window.pendingCheckins];
+            window.pendingCheckins.length = 0;
+            updatePendingCount();
+
+            try {
+                const response = await fetch(GAS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'updateAttendance',
+                        dayNumber: currentDayNumber,
+                        attendanceInfos: batchData
+                    })
+                });
+                const result = await response.json();
+                if (result.status !== 'success') {
+                    throw new Error(result.message || 'Server error');
+                }
+            } catch (err) {
+                window.pendingCheckins.push(...batchData);
+                updatePendingCount();
+            }
+        }
+
+        function updatePendingCount() {
+            const count = window.pendingCheckins.length;
+            const $footer = $('#sync-footer');
+            if (count > 0) {
+                $('#pending-count').text(count);
+                $footer.removeClass('bg-dark').addClass('bg-warning text-dark').show();
+            } else {
+                $('#pending-count').text(0);
+                $footer.hide();
+            }
+        }
+
+        $(function() {
+            loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+            const qrModalEl = document.getElementById('qrScannerModal');
+            qrScannerModal = new bootstrap.Modal(qrModalEl);
+
+            qrModalEl.addEventListener('shown.bs.modal', function() {
+                $('#handheld-qr-input').val('').focus();
+                startQrCamera();
+            });
+            qrModalEl.addEventListener('hidden.bs.modal', stopQrCamera);
+
+            $('.day-card').on('click', function() {
+                selectDay($(this).data('day'));
+            });
+
+            $('#back-to-days-btn').on('click', function() {
+                if (window.pendingCheckins.length > 0 && !confirm(`You have ${window.pendingCheckins.length} pending check-in(s) still syncing. Leave this page anyway?`)) {
+                    return;
+                }
+                $('#checkin-view').addClass('d-none');
+                $('#landing-view').removeClass('d-none');
+            });
+
+            $('#check-in-btn').on('click', checkInGuest);
+            $('#new-registration-form').on('submit', submitNewRegistration);
+            $('#clear-search-btn').on('click', () => $('#guest-search').val('').autocomplete('close').focus());
+            $('#scan-qr-btn').on('click', () => qrScannerModal.show());
+
+            $('#guest-search').on('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const val = $(this).val().trim();
+                    if (val && (val.includes('@') || val.startsWith('{') || /day[\s_:=#-]*[123]/i.test(val))) {
+                        e.preventDefault();
+                        $(this).val('').autocomplete('close');
+                        handleQrScanResult(val);
+                    }
+                }
+            });
+
+            $('#handheld-qr-input').on('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const val = $(this).val().trim();
+                    $(this).val('');
+                    if (val) handleQrScanResult(val);
+                }
+            });
+
+            $('#cancel-checkin-btn').on('click', function() {
+                window.selectedGuest = null;
+                $('#selected-user-details').addClass('d-none').hide();
+                $('#guest-search').val('').focus();
+            });
+
+            $('#cancel-new-reg-btn').on('click', function() {
+                $('#new-registration-form')[0].reset();
+                new bootstrap.Tab(document.getElementById('pre-registered-tab')).show();
+                setTimeout(() => $('#guest-search').focus(), 200);
+            });
+
+            attachPartySizeListeners();
+            syncIntervalId = setInterval(batchUpdateAttendance, 1000);
+        });
+    </script>
+</body>
+</html>
