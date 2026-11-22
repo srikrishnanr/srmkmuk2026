@@ -9,7 +9,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css">
-    <script src="[link removed]"></script>
+    <script src="html5-qrcode.min.js"></script>
 
     <style>
         html, body {
@@ -288,7 +288,7 @@
                 </div>
                 <div class="modal-body p-3">
                     <div id="qr-reader-div"></div>
-                    <div id="qr-scanner-status" class="alert alert-info py-2 my-3">Starting camera...</div>
+                    <div id="qr-scanner-status" class="alert alert-info py-2 my-3 text-break">Starting camera...</div>
                     <label for="handheld-qr-input" class="form-label fw-medium mb-1">Or scan with handheld QR scanner:</label>
                     <input type="text" id="handheld-qr-input" class="form-control form-control-lg" placeholder="Focus here & scan QR..." autocomplete="off">
                 </div>
@@ -451,9 +451,15 @@
             const $status = $('#qr-scanner-status');
             $status.removeClass('alert-warning alert-danger').addClass('alert-info').text('Starting camera...');
 
+            if (typeof Html5Qrcode === 'undefined') {
+                $status.removeClass('alert-info').addClass('alert-danger')
+                    .text('Error: html5-qrcode.min.js is not loaded. Ensure it is in the same repository folder as index.html.');
+                return;
+            }
+
             try {
                 if (!html5QrCode) {
-                    html5QrCode = new Html5Qrcode("qr-reader-div");
+                    html5QrCode = new Html5Qrcode('qr-reader-div');
                 }
 
                 if (html5QrCode.isScanning) {
@@ -461,7 +467,7 @@
                 }
 
                 await html5QrCode.start(
-                    { facingMode: "environment" },
+                    { facingMode: 'environment' },
                     {
                         fps: 10,
                         qrbox: { width: 250, height: 250 }
@@ -474,8 +480,10 @@
 
                 $status.text('Point camera at the guest QR code...');
             } catch (err) {
+                const errName = (err && err.name) ? err.name : 'CameraError';
+                const errMsg = (err && err.message) ? err.message : String(err);
                 $status.removeClass('alert-info').addClass('alert-warning')
-                    .text('Camera permission denied or unavailable. Use the handheld scanner input below.');
+                    .text('Camera error (' + errName + ': ' + errMsg + '). Use the handheld scanner input below.');
             }
         }
 
