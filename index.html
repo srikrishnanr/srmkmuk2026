@@ -26,7 +26,7 @@
             font-family: inherit !important;
             font-size: 1rem !important;
         }
-        input.form-control, button.btn {
+        input.form-control, textarea.form-control, button.btn {
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
@@ -290,7 +290,7 @@
                     <div id="qr-reader-div"></div>
                     <div id="qr-scanner-status" class="alert alert-info py-2 my-3 text-break">Starting camera...</div>
                     <label for="handheld-qr-input" class="form-label fw-medium mb-1">Or scan with handheld QR scanner:</label>
-                    <input type="text" id="handheld-qr-input" class="form-control form-control-lg" placeholder="Focus here & scan QR..." autocomplete="off">
+                    <textarea id="handheld-qr-input" class="form-control form-control-lg" rows="3" placeholder="Focus here & scan QR..." autocomplete="off"></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-lg w-100" data-bs-dismiss="modal">Close</button>
@@ -318,7 +318,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyaEStF4cqgb-k8R6S9iZbt6kW0C4vaxIcZYDyWcr0qnJ89U13KZ9GFrjDs33me1Bgrfg/exec';
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxOB-wvwn0XwcYQ_wfcvR0OLF6U0L0PlaNuj3rbk2NVxldd1yFeq2PDNAaeboiKzj_KDg/exec';
 
         let currentDayNumber = 1;
         window.masterData = [];
@@ -328,6 +328,7 @@
         let loadingModal;
         let qrScannerModal;
         let html5QrCode = null;
+        let handheldScanTimer = null;
         let syncIntervalId = null;
 
         const dayMap = {
@@ -338,7 +339,7 @@
 
         async function selectDay(day) {
             currentDayNumber = Number(day) || 1;
-            $('#title').text(dayMap[currentDayNumber] || `Day ${currentDayNumber}`);
+            $('#title').text(dayMap[currentDayNumber] || 'Day ' + currentDayNumber);
             $('#landing-view').addClass('d-none');
             $('#checkin-view').removeClass('d-none');
             $('#selected-user-details').addClass('d-none').hide();
@@ -353,117 +354,120 @@
                 }
                 window.masterData = result.data || [];
                 initializeAutocomplete();
-                $('#status-alert').removeClass('d-none alert-success alert-danger').addClass('alert-info');
+                $('#status-alert').removeClass('d-none alert-success alert-danger alert-warning').addClass('alert-info');
                 $('#data-status').text(`Successfully loaded ${window.masterData.length} records.`);
                 setTimeout(() => $('#guest-search').focus(), 200);
             } catch (err) {
-                $('#status-alert').removeClass('d-none alert-info alert-success').addClass('alert-danger');
+                $('#status-alert').removeClass('d-none alert-info alert-success alert-warning').addClass('alert-danger');
                 $('#data-status').text('Error loading data: ' + err.message);
             } finally {
                 loadingModal.hide();
                 $('.modal-backdrop').remove();
             }
         }
-        
-function parseQrPayload(rawText) {
-    const text = String(rawText || '').trim();
-    let email = '';
-    let id = '';
-    const dayCounts = {};
 
-    if (text.startsWith('{')) {
-        try {
-            const obj = JSON.parse(text);
-            email = String(obj.email || obj.Email || '').trim();
-            id = String(obj.id || obj.ID || '').trim();
-            if (obj.days && typeof obj.days === 'object') {
-                [1, 2, 3].forEach(d => {
-                    const entry = obj.days[d] || obj.days['day' + d];
-                    if (entry) {
-                        dayCounts[d] = {
-                            adults: parseInt(entry.adults ?? entry.numAdults ?? 0, 10) || 0,
-                            children: parseInt(entry.children ?? entry.numChildren ?? 0, 10) || 0
-                        };
+        function parseQrPayload(rawText) {
+            const text = String(rawText || '').trim();
+            let email = '';
+            let id = '';
+            const dayCounts = {};
+
+            if (text.startsWith('{')) {
+                try {
+                    const obj = JSON.parse(text);
+                    email = String(obj.email || obj.Email || '').trim();
+                    id = String(obj.id || obj.ID || '').trim();
+                    if (obj.days && typeof obj.days === 'object') {
+                        [1, 2, 3].forEach(d => {
+                            const entry = obj.days[d] || obj.days['day' + d];
+                            if (entry) {
+                                dayCounts[d] = {
+                                    adults: parseInt(entry.adults ?? entry.numAdults ?? 0, 10) || 0,
+                                    children: parseInt(entry.children ?? entry.numChildren ?? 0, 10) || 0
+                                };
+                            }
+                        });
                     }
-                });
+                    if (email || id) {
+                        return { email: email.toLowerCase(), id, dayCounts };
+                    }
+                } catch (e) {}
             }
-            if (email || id) return { email: email.toLowerCase(), id, dayCounts };
-        } catch (e) {}
-    }
 
-    if (text.includes('email=')) {
-        try {
-            const params = new URLSearchParams(text.includes('?') ? text.split('?')[1] : text);
-            if (params.get('email')) email = params.get('email').trim();
-            if (params.get('id')) id = params.get('id').trim();
-        } catch (e) {}
-    }
+            if (text.includes('email=')) {
+                try {
+                    const params = new URLSearchParams(text.includes('?') ? text.split('?')[1] : text);
+                    if (params.get('email')) email = params.get('email').trim();
+                    if (params.get('id')) id = params.get('id').trim();
+                } catch (e) {}
+            }
 
-    if (!email) {
-        const match = text.match(/email\s*[:=]\s*([^\s,;]+@[^\s,;]+)/i) ||
-                      text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-        if (match) email = (match[1] || match[0]).trim();
-    }
+            if (!email) {
+                const match = text.match(/email\s*[:=]\s*([^\s,;]+@[^\s,;]+)/i) ||
+                              text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+                if (match) email = (match[1] || match[0]).trim();
+            }
 
-    [1, 2, 3].forEach(d => {
-        const dayRegex = new RegExp('Day\\s*' + d + '\\s*:\\s*([\\s\\S]*?)(?=Day\\s*[123]\\s*:|Thank|$)', 'i');
-        const daySectionMatch = text.match(dayRegex);
-        if (daySectionMatch) {
-            const section = daySectionMatch[1];
-            const adultsMatch = section.match(/Adults?\s*:?\s*(\d+)/i);
-            const childrenMatch = section.match(/Child(?:ren)?\s*:?\s*(\d+)/i);
-            dayCounts[d] = {
-                adults: adultsMatch ? parseInt(adultsMatch[1], 10) : 0,
-                children: childrenMatch ? parseInt(childrenMatch[1], 10) : 0
-            };
+            [1, 2, 3].forEach(d => {
+                const dayRegex = new RegExp('Day\\s*' + d + '\\s*:\\s*([\\s\\S]*?)(?=Day\\s*[123]\\s*:|Thank|$)', 'i');
+                const daySectionMatch = text.match(dayRegex);
+                if (daySectionMatch) {
+                    const section = daySectionMatch[1];
+                    const adultsMatch = section.match(/Adults?\s*:?\s*(\d+)/i);
+                    const childrenMatch = section.match(/Child(?:ren)?\s*:?\s*(\d+)/i);
+                    dayCounts[d] = {
+                        adults: adultsMatch ? parseInt(adultsMatch[1], 10) : 0,
+                        children: childrenMatch ? parseInt(childrenMatch[1], 10) : 0
+                    };
+                }
+            });
+
+            return { email: email.toLowerCase(), id, dayCounts };
         }
-    });
 
-    return { email: email.toLowerCase(), id, dayCounts };
-}
+        function handleQrScanResult(rawText) {
+            const trimmed = String(rawText || '').trim();
+            if (!trimmed) return;
 
-function handleQrScanResult(rawText) {
-    const trimmed = String(rawText || '').trim();
-    if (!trimmed) return;
+            stopQrCamera();
+            qrScannerModal.hide();
 
-    stopQrCamera();
-    qrScannerModal.hide();
+            const parsed = parseQrPayload(trimmed);
 
-    const parsed = parseQrPayload(trimmed);
+            let matchedGuest = parsed.id
+                ? window.masterData.find(g => String(g.id).trim() === parsed.id)
+                : null;
+            if (!matchedGuest && parsed.email) {
+                matchedGuest = window.masterData.find(g => String(g.email || '').trim().toLowerCase() === parsed.email);
+            }
 
-    let matchedGuest = parsed.id
-        ? window.masterData.find(g => String(g.id).trim() === parsed.id)
-        : null;
-    if (!matchedGuest && parsed.email) {
-        matchedGuest = window.masterData.find(g => String(g.email || '').trim().toLowerCase() === parsed.email);
-    }
+            if (!matchedGuest) {
+                window.selectedGuest = null;
+                $('#selected-user-details').addClass('d-none').hide();
+                $('#status-alert').removeClass('d-none alert-info alert-success alert-warning').addClass('alert-danger');
+                const lookupLabel = parsed.email || parsed.id || trimmed;
+                $('#data-status').html(`Guest not found for QR code (<strong>${$('<div>').text(lookupLabel).html()}</strong>). Please search manually or use New Registration.`);
+                setTimeout(() => $('#guest-search').focus(), 200);
+                return;
+            }
 
-    if (!matchedGuest) {
-        window.selectedGuest = null;
-        $('#selected-user-details').addClass('d-none').hide();
-        $('#status-alert').removeClass('d-none alert-info alert-success alert-warning').addClass('alert-danger');
-        $('#data-status').text('Guest not found for QR code. Please search manually or use New Registration.');
-        setTimeout(() => $('#guest-search').focus(), 200);
-        return;
-    }
+            const qrDayCounts = parsed.dayCounts && parsed.dayCounts[Number(currentDayNumber)];
+            if (qrDayCounts && matchedGuest.isCheckedIn !== 'Y') {
+                matchedGuest.numAdults = qrDayCounts.adults;
+                matchedGuest.numChildren = qrDayCounts.children;
+            }
 
-    const qrDayCounts = parsed.dayCounts && parsed.dayCounts[Number(currentDayNumber)];
-    if (qrDayCounts && matchedGuest.isCheckedIn !== 'Y') {
-        matchedGuest.numAdults = qrDayCounts.adults;
-        matchedGuest.numChildren = qrDayCounts.children;
-    }
+            displaySelectedUser(matchedGuest);
 
-    displaySelectedUser(matchedGuest);
-
-    if (qrDayCounts && qrDayCounts.adults === 0 && qrDayCounts.children === 0 && matchedGuest.isCheckedIn !== 'Y') {
-        $('#status-alert').removeClass('d-none alert-info alert-success alert-danger').addClass('alert-warning');
-        $('#data-status').html(`Note: QR code lists <strong>0 Adults, 0 Children</strong> for Day ${currentDayNumber}. Please confirm party size before checking in.`);
-    }
-}
+            if (qrDayCounts && qrDayCounts.adults === 0 && qrDayCounts.children === 0 && matchedGuest.isCheckedIn !== 'Y') {
+                $('#status-alert').removeClass('d-none alert-info alert-success alert-danger').addClass('alert-warning');
+                $('#data-status').html(`Note: QR code lists <strong>0 Adults, 0 Children</strong> for Day ${currentDayNumber}. Please confirm party size before checking in.`);
+            }
+        }
 
         async function startQrCamera() {
             const $status = $('#qr-scanner-status');
-            $status.removeClass('alert-warning alert-danger').addClass('alert-info').text('Starting camera...');
+            $status.removeClass('alert-warning alert-danger alert-success').addClass('alert-info').text('Starting camera...');
 
             if (typeof Html5Qrcode === 'undefined') {
                 $status.removeClass('alert-info').addClass('alert-danger')
@@ -473,7 +477,9 @@ function handleQrScanResult(rawText) {
 
             try {
                 if (!html5QrCode) {
-                    html5QrCode = new Html5Qrcode('qr-reader-div');
+                    html5QrCode = new Html5Qrcode('qr-reader-div', {
+                        experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+                    });
                 }
 
                 if (html5QrCode.isScanning) {
@@ -483,10 +489,20 @@ function handleQrScanResult(rawText) {
                 await html5QrCode.start(
                     { facingMode: 'environment' },
                     {
-                        fps: 10,
-                        qrbox: { width: 250, height: 250 }
+                        fps: 15,
+                        qrbox: (viewfinderWidth, viewfinderHeight) => {
+                            const size = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.8);
+                            return { width: size, height: size };
+                        },
+                        videoConstraints: {
+                            facingMode: 'environment',
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }
                     },
                     (decodedText) => {
+                        $status.removeClass('alert-warning alert-danger alert-info').addClass('alert-success')
+                            .text('QR detected! Loading guest...');
                         handleQrScanResult(decodedText);
                     },
                     () => {}
@@ -551,7 +567,7 @@ function handleQrScanResult(rawText) {
 
         function displaySelectedUser(guest) {
             window.selectedGuest = guest;
-            $('#status-alert').addClass('d-none').removeClass('alert-success alert-danger').addClass('alert-info');
+            $('#status-alert').addClass('d-none').removeClass('alert-success alert-danger alert-warning').addClass('alert-info');
             $('#data-status').html('');
             $('#check-in-btn').text(guest.isCheckedIn === 'Y' ? 'Update' : 'Add');
 
@@ -628,7 +644,7 @@ function handleQrScanResult(rawText) {
             updatePendingCount();
 
             $('#selected-user-details').addClass('d-none').hide();
-            $('#status-alert').removeClass('d-none alert-info alert-danger').addClass('alert-success');
+            $('#status-alert').removeClass('d-none alert-info alert-danger alert-warning').addClass('alert-success');
             $('#data-status').html(`&#10004; Successfully checked-in ${payload.fname} ${payload.lname} (${payload.numAdults}A${payload.numChildren > 0 ? ' + ' + payload.numChildren + 'C' : ''})`);
             $('#guest-search').focus();
         }
@@ -659,7 +675,7 @@ function handleQrScanResult(rawText) {
             updatePendingCount();
             $form[0].reset();
 
-            $('#status-alert').removeClass('d-none alert-info alert-danger').addClass('alert-success');
+            $('#status-alert').removeClass('d-none alert-info alert-danger alert-warning').addClass('alert-success');
             $('#data-status').html(`&#10004; Successfully registered and checked-in: ${newGuest.fname} ${newGuest.lname} (${newGuest.numAdults}A${newGuest.numChildren > 0 ? ' + ' + newGuest.numChildren + 'C' : ''})`);
             new bootstrap.Tab(document.getElementById('pre-registered-tab')).show();
             setTimeout(() => $('#guest-search').focus(), 200);
@@ -713,7 +729,13 @@ function handleQrScanResult(rawText) {
                 $('#handheld-qr-input').val('').focus();
                 startQrCamera();
             });
-            qrModalEl.addEventListener('hidden.bs.modal', stopQrCamera);
+            qrModalEl.addEventListener('hidden.bs.modal', function() {
+                if (handheldScanTimer) {
+                    clearTimeout(handheldScanTimer);
+                    handheldScanTimer = null;
+                }
+                stopQrCamera();
+            });
 
             $('.day-card').on('click', function() {
                 selectDay($(this).data('day'));
@@ -743,13 +765,18 @@ function handleQrScanResult(rawText) {
                 }
             });
 
-            $('#handheld-qr-input').on('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const val = $(this).val().trim();
-                    $(this).val('');
-                    if (val) handleQrScanResult(val);
+            $('#handheld-qr-input').on('input', function() {
+                const $input = $(this);
+                if (handheldScanTimer) {
+                    clearTimeout(handheldScanTimer);
                 }
+                handheldScanTimer = setTimeout(function() {
+                    const val = $input.val().trim();
+                    if (val && (val.includes('@') || val.startsWith('{'))) {
+                        $input.val('');
+                        handleQrScanResult(val);
+                    }
+                }, 250);
             });
 
             $('#cancel-checkin-btn').on('click', function() {
