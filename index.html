@@ -318,7 +318,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyaEStF4cqgb-k8R6S9iZbt6kW0C4vaxIcZYDyWcr0qnJ89U13KZ9GFrjDs33me1Bgrfg/exec';
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxOB-wvwn0XwcYQ_wfcvR0OLF6U0L0PlaNuj3rbk2NVxldd1yFeq2PDNAaeboiKzj_KDg/exec';
 
         let currentDayNumber = 1;
         window.masterData = [];
@@ -329,7 +329,10 @@
         let qrScannerModal;
         let html5QrCode = null;
         let handheldScanTimer = null;
+        let searchScanBuffer = '';
+        let searchScanTimer = null;
         let syncIntervalId = null;
+        const SCAN_BUFFER_MS = 120;
 
         const dayMap = {
             1: 'Friday: 27th Nov 2026',
@@ -344,6 +347,7 @@
             $('#checkin-view').removeClass('d-none');
             $('#selected-user-details').addClass('d-none').hide();
             $('#guest-search').val('');
+            searchScanBuffer = '';
 
             loadingModal.show();
             try {
@@ -366,8 +370,62 @@
             }
         }
 
-        function parseQrPayload(rawText) {
+        function isQrPayloadComplete(rawText) {
+            const text = String(rawText || '').replace(/\r\n?/g, '\n').trim();
+            if (!text) return false;
+            if (/thank\s*you\s*$/i.test(text)) return true;
+            if (text.startsWith('{') && text.endsWith('}')) {
+                try {
+                    JSON.parse(text);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        function looksLikeQrInput(rawText) {
             const text = String(rawText || '').trim();
+            if (!text) return false;
+            return (
+                /^(shri|radha|kalyana|email\s*[:=]|day\s*[123]\s*:)/i.test(text) ||
+                text.includes('@') ||
+                text.startsWith('{') ||
+                /\bday[\s_:=#-]*[123]\b/i.test(text)
+            );
+        }
+
+        function flushSearchScanBuffer() {
+            if (searchScanTimer) {
+                clearTimeout(searchScanTimer);
+                searchScanTimer = null;
+            }
+            const trailing = $('#guest-search').val();
+            const fullPayload = (searchScanBuffer + (trailing || '')).replace(/\r\n?/g, '\n').trim();
+            searchScanBuffer = '';
+
+            if (!fullPayload) return;
+
+            $('#guest-search').val('').autocomplete('close');
+            handleQrScanResult(fullPayload);
+        }
+
+        function flushHandheldQrInput() {
+            if (handheldScanTimer) {
+                clearTimeout(handheldScanTimer);
+                handheldScanTimer = null;
+            }
+            const $input = $('#handheld-qr-input');
+            const val = $input.val().replace(/\r\n?/g, '\n').trim();
+            if (val && (val.includes('@') || val.startsWith('{') || /\b(id|email)\s*[:=]/i.test(val) || /day\s*[123]/i.test(val))) {
+                $input.val('');
+                handleQrScanResult(val);
+            }
+        }
+
+        function parseQrPayload(rawText) {
+            const text = String(rawText || '').replace(/\r\n?/g, '\n').trim();
             let email = '';
             let id = '';
             const dayCounts = {};
@@ -389,23 +447,30 @@
                         });
                     }
                     if (email || id) {
-                        return { email: email.toLowerCase(), id, dayCounts };
+                        return { email: email.toLowerCase(), id: id, dayCounts: dayCounts };
                     }
                 } catch (e) {}
             }
 
             if (text.includes('email=')) {
                 try {
-                    const params = new URLSearchParams(text.includes('?') ? text.split('?')[1] : text);
+                    const queryPart = text.includes('?') ? text.split('?')[1] : text;
+                    const params = new URLSearchParams(queryPart);
                     if (params.get('email')) email = params.get('email').trim();
                     if (params.get('id')) id = params.get('id').trim();
                 } catch (e) {}
             }
 
             if (!email) {
-                const match = text.match(/email\s*[:=]\s*([^\s,;]+@[^\s,;]+)/i) ||
-                              text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-                if (match) email = (match[1] || match[0]).trim();
+                const emailLabelMatch = text.match(/email\s*[:=]\s*([^\s,;]+@[^\s,;]+)/i);
+                if (emailLabelMatch) {
+                    email = emailLabelMatch[1].trim();
+                } else {
+                    const genericEmailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+                    if (genericEmailMatch) {
+                        email = genericEmailMatch[0].trim();
+                    }
+                }
             }
 
             [1, 2, 3].forEach(d => {
@@ -422,7 +487,7 @@
                 }
             });
 
-            return { email: email.toLowerCase(), id, dayCounts };
+            return { email: email.toLowerCase(), id: id, dayCounts: dayCounts };
         }
 
         function handleQrScanResult(rawText) {
@@ -726,6 +791,11 @@
             qrScannerModal = new bootstrap.Modal(qrModalEl);
 
             qrModalEl.addEventListener('shown.bs.modal', function() {
+                searchScanBuffer = '';
+                if (searchScanTimer) {
+                    clearTimeout(searchScanTimer);
+                    searchScanTimer = null;
+                }
                 $('#handheld-qr-input').val('').focus();
                 startQrCamera();
             });
@@ -745,38 +815,88 @@
                 if (window.pendingCheckins.length > 0 && !confirm(`You have ${window.pendingCheckins.length} pending check-in(s) still syncing. Leave this page anyway?`)) {
                     return;
                 }
+                stopQrCamera();
                 $('#checkin-view').addClass('d-none');
                 $('#landing-view').removeClass('d-none');
             });
 
             $('#check-in-btn').on('click', checkInGuest);
             $('#new-registration-form').on('submit', submitNewRegistration);
-            $('#clear-search-btn').on('click', () => $('#guest-search').val('').autocomplete('close').focus());
-            $('#scan-qr-btn').on('click', () => qrScannerModal.show());
+            $('#clear-search-btn').on('click', function() {
+                searchScanBuffer = '';
+                if (searchScanTimer) {
+                    clearTimeout(searchScanTimer);
+                    searchScanTimer = null;
+                }
+                $('#guest-search').val('').autocomplete('close').focus();
+            });
+            $('#scan-qr-btn').on('click', function() {
+                if (!window.masterData || window.masterData.length === 0) {
+                    $('#status-alert').removeClass('d-none alert-info alert-success alert-warning').addClass('alert-danger');
+                    $('#data-status').html('Master data is not loaded yet. Please wait before scanning.');
+                    return;
+                }
+                qrScannerModal.show();
+            });
 
+            // Buffer rapid multi-line / CR / LF handheld QR scanner input directly in the search box
             $('#guest-search').on('keydown', function(e) {
                 if (e.key === 'Enter') {
-                    const val = $(this).val().trim();
-                    if (val && (val.includes('@') || val.startsWith('{') || /day[\s_:=#-]*[123]/i.test(val))) {
+                    const val = $(this).val();
+                    if (searchScanBuffer || looksLikeQrInput(val)) {
                         e.preventDefault();
+                        searchScanBuffer += val + '\n';
                         $(this).val('').autocomplete('close');
-                        handleQrScanResult(val);
+                        if (isQrPayloadComplete(searchScanBuffer)) {
+                            flushSearchScanBuffer();
+                        } else {
+                            if (searchScanTimer) clearTimeout(searchScanTimer);
+                            searchScanTimer = setTimeout(flushSearchScanBuffer, SCAN_BUFFER_MS);
+                        }
                     }
+                } else if (e.key === 'Tab' && searchScanBuffer) {
+                    e.preventDefault();
+                    flushSearchScanBuffer();
                 }
             });
 
-            $('#handheld-qr-input').on('input', function() {
+            $('#guest-search').on('input', function() {
+                if (!searchScanBuffer) return;
+                const combined = searchScanBuffer + $(this).val();
+                if (isQrPayloadComplete(combined)) {
+                    flushSearchScanBuffer();
+                } else {
+                    if (searchScanTimer) clearTimeout(searchScanTimer);
+                    searchScanTimer = setTimeout(flushSearchScanBuffer, SCAN_BUFFER_MS);
+                }
+            });
+
+            // Buffer multi-line CR/LF/Tab QR input from handheld scanners in the modal textarea
+            $('#handheld-qr-input').on('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    const el = this;
+                    const start = el.selectionStart || el.value.length;
+                    const end = el.selectionEnd || el.value.length;
+                    el.value = el.value.slice(0, start) + '\n' + el.value.slice(end);
+                    $(this).trigger('input');
+                } else if (e.key === 'Enter') {
+                    if (handheldScanTimer) clearTimeout(handheldScanTimer);
+                    handheldScanTimer = setTimeout(flushHandheldQrInput, SCAN_BUFFER_MS);
+                }
+            });
+
+            $('#handheld-qr-input').on('input paste', function() {
                 const $input = $(this);
                 if (handheldScanTimer) {
                     clearTimeout(handheldScanTimer);
                 }
-                handheldScanTimer = setTimeout(function() {
-                    const val = $input.val().trim();
-                    if (val && (val.includes('@') || val.startsWith('{'))) {
-                        $input.val('');
-                        handleQrScanResult(val);
-                    }
-                }, 250);
+                const currentVal = $input.val();
+                if (isQrPayloadComplete(currentVal)) {
+                    flushHandheldQrInput();
+                } else {
+                    handheldScanTimer = setTimeout(flushHandheldQrInput, SCAN_BUFFER_MS);
+                }
             });
 
             $('#cancel-checkin-btn').on('click', function() {
